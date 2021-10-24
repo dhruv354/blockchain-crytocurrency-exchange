@@ -68,3 +68,24 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+
+// "@testing-library/jest-dom": "^5.14.1",
+    // "@testing-library/react": "^11.2.7",
+    // "@testing-library/user-event": "^12.8.3",
+    // "apexcharts": "^3.6.3",
+    // "react": "^17.0.2",
+    // "react-dom": "^17.0.2",
+    // "react-redux": "^7.2.5",
+    // "react-scripts": "^3.4.4",
+    // "redux": "^4.1.1",
+    // "redux-logger": "^3.0.6",
+    // "reselect": "^4.0.0",
+    // "solidity-coverage": "^0.7.17",
+    // "truffle": "^5.4.16",
+    // "truffle-flattener": "^1.5.0",
+    // "truffle-hdwallet-provider": "^1.0.17",
+    // "truffle-hdwallet-provider-privkey": "^0.3.0",
+    // "web-vitals": "^1.1.2",
+    // "web3": "^1.6.0"
