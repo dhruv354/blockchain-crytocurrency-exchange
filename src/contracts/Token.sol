@@ -16,9 +16,13 @@ contract Token{
         balanceOf[msg.sender] = totalSupply;
     }
 
+    //events
+    event Transfer(address from, address to, uint256 value);
+
     function transfer(address _to, uint256 _value) public returns (bool success){
         balanceOf[msg.sender] = balanceOf[msg.sender] - _value;
         balanceOf[_to] = balanceOf[_to] + _value;
+        emit Transfer(msg.sender, _to, _value);
         return true;
     }
 }
