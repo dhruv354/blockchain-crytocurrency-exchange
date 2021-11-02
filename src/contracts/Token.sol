@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 
 
-pragma solidity >=0.5.1 ;
+pragma solidity >=0.5.0 ;
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
+
 
 contract Token{
     string public name = "Dhruv";
@@ -22,16 +26,18 @@ contract Token{
     event Approve(address indexed from, address indexed to, uint256 indexed value);
 
     function transfer(address _to, uint256 _value) public returns (bool success){
-        require(_to != address(0));
         require(balanceOf[msg.sender] >= _value);
-        balanceOf[msg.sender] = balanceOf[msg.sender] - _value;
-        balanceOf[_to] = balanceOf[_to] + _value;
-        emit Transfer(msg.sender, _to, _value);
+        _transfer(msg.sender, _to, _value);
         return true;
     }
 
     //internal function can be accessed only within the smart contract
-    function _transfer()
+    function _transfer(address _from, address _to, uint256 _value)  internal{
+        require(_to != address(0));
+        balanceOf[_from] = balanceOf[_from] - (_value);
+        balanceOf[_to] = balanceOf[_to] + (_value);
+        emit Transfer(_from, _to, _value);
+    }
 
     // approve the tokens
     function approve(address _spender, uint256 _value) public returns (bool success){
@@ -42,7 +48,11 @@ contract Token{
 
     }
 
-    function transferFrom(address _from, address _to, unint256 _value)  public returns (bool success){
+    function transferFrom(address _from, address _to, uint256 _value)  public returns (bool success){
+        // require(balanceOf[_from] >= _value);
+        // allowance[_from][msg.sender] =  allowance[_from][msg.sender] - _value;
+        allowance[_from][msg.sender] =  allowance[_from][msg.sender] - (_value);
+        _transfer(_from, _to, _value);
         return true;
     }
 }

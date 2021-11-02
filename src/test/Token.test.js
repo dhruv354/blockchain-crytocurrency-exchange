@@ -85,6 +85,11 @@ contract('Token', ([deployer, sender, receiver, exchange]) => {
         let amount;
         let result;
 
+        // beforeEach(async() => {
+        //     amount = tokens(100);
+        //     await token.approve(exchange, amount, { from: deployer });
+        // })
+
         describe('success', async() => {
             beforeEach(async() => {
                 amount = tokens(100)
@@ -124,6 +129,7 @@ contract('Token', ([deployer, sender, receiver, exchange]) => {
                 //console.log("final deployer balance" + final_balanceOf_deployer.toString());
                 final_balanceOf_receiver.toString().should.equal(temp2.toString());
             })
+
 
             it('emits a transfer event', async() => {
                 const log = result.logs[0]
@@ -189,4 +195,87 @@ contract('Token', ([deployer, sender, receiver, exchange]) => {
             })
         })
     })
+
+
+    describe('delegated token transfer', () => {
+
+        let amount;
+        let result;
+
+        beforeEach(async() => {
+            amount = tokens(100)
+            await token.approve(exchange, amount, { from: deployer });
+        })
+
+
+        describe('success', async() => {
+            beforeEach(async() => {
+                amount = tokens(100)
+            })
+
+            it('tracks sending of tokens', async() => {
+                let initial_balanceOf_deployer;
+                let initial_balanceOf_receiver;
+                console.log("balance before tranfer of tokens");
+                initial_balanceOf_deployer = await token.balanceOf(deployer);
+                console.log("initial deployer balance" + initial_balanceOf_deployer.toString());
+                initial_balanceOf_receiver = await token.balanceOf(receiver);
+                console.log("initial receiver balance" + initial_balanceOf_receiver.toString());
+
+                //do transfer
+                result = await token.transferFrom(deployer, receiver, amount, { from: exchange })
+
+                //after transfer
+
+                let final_balanceOf_deployer, final_balanceOf_receiver;
+                console.log("balance after tranfer of tokens");
+
+                final_balanceOf_deployer = await token.balanceOf(deployer);
+                console.log("final deployer balance" + final_balanceOf_deployer.toString());
+
+                final_balanceOf_receiver = await token.balanceOf(receiver);
+                console.log("final receiver balance" + final_balanceOf_receiver.toString());
+
+                temp1 = initial_balanceOf_deployer - amount;
+                temp2 = initial_balanceOf_receiver + amount;
+                temp1 = toFixed(temp1)
+                temp2 = toFixed(temp2)
+                temp2 = parseFloat(temp2)
+
+
+                final_balanceOf_deployer.toString().should.equal(temp1.toString());
+                //console.log("final deployer balance" + final_balanceOf_deployer.toString());
+                final_balanceOf_receiver.toString().should.equal(temp2.toString());
+            })
+
+
+            it('emits a transfer event', async() => {
+                const log = result.logs[0]
+                log.event.should.equal('Transfer')
+                console.log(log.event);
+                const event = log.args
+                console.log("exchange: ", exchange);
+                console.log("deployer: ", deployer);
+                event.from.toString().should.equal(deployer, 'who sends it is correct')
+                event.to.toString().should.equal(receiver, 'reciever is correct')
+                console.log("error here");
+                event.value.toString().should.equal(amount.toString(), 'value sent and receivd is correct')
+
+            })
+
+            it('resets the allowance', async() => {
+                const allowance = await token.allowance(exchange, deployer);
+                allowance.toString().should.equal('0')
+            })
+        })
+
+        describe('failure', async() => {
+            it('rejects insufficient amounts', async() => {
+                const inValidAmount = tokens(100000000);
+                await token.transferFrom(deployer, receiver, inValidAmount, { from: exchange }).should.be.rejectedWith(EVM_REVERT)
+            })
+        })
+    })
+
+
 })
