@@ -274,6 +274,10 @@ contract('Token', ([deployer, sender, receiver, exchange]) => {
                 const inValidAmount = tokens(100000000);
                 await token.transferFrom(deployer, receiver, inValidAmount, { from: exchange }).should.be.rejectedWith(EVM_REVERT)
             })
+
+            it('rejects invalid recipients', async() => {
+                await token.transferFrom(deployer, 0x0, amount, { from: exchange }).should.be.rejected
+            })
         })
     })
 
