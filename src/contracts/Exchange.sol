@@ -24,6 +24,11 @@ contract Exchange{
         feePercent = _feePercent;
     }
 
+
+    function() external{
+        revert();
+    }
+
     function depositEther() payable public{
         // require(Token(_token).transferFrom(msg.sender, address(this), _amount))
         tokens[ETHER][msg.sender] += msg.value;

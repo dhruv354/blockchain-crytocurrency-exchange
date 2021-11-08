@@ -74,6 +74,12 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
 
     })
 
+    describe('fallback', async() => {
+        it('reverts when ether is sent by mistake', async() => {
+            await exchange.sendTransaction({ value: tokens(1), from: user1 }).should.be.rejectedWith(EVM_REVERT)
+        })
+    })
+
     describe('depositing ETHER', () => {
         let result
         let amount = tokens(1)
