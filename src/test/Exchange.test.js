@@ -40,25 +40,28 @@ require('chai')
     .use(require('chai-as-promised'))
     .should()
 
-contract('Exchange', ([deployer, feeAccount]) => {
+contract('Exchange', ([deployer, feeAccount, user1]) => {
     let exchange
     let token
     const feePercent = 10
     EVM_REVERT = 'VM Exception while processing transaction: revert'
 
     beforeEach(async() => {
-        exchange = await Exchange.new(feeAccount, feePercent);
+
+        //deploy token
         token = await Token.new()
+            //Deploy Exchange
+        exchange = await Exchange.new(feeAccount, feePercent);
+        //transfer tokens from deployer to user
+        await token.transfer(user1, tokens(100), { from: deployer });
     })
 
     describe('deployment', () => {
-        beforeEach(async() => {
-            await token.approve(exchange.address, tokens(10), { from })
-        })
+
         it('tracks the fee account', async() => {
             //read token name here
-            const result = await exchange.feeAccount()
-            result.should.equal(feeAccount)
+            const x = await exchange.feeAccount()
+            x.should.equal(feeAccount)
         })
 
         it('tracks the fee percent', async() => {
@@ -69,13 +72,46 @@ contract('Exchange', ([deployer, feeAccount]) => {
     })
 
     describe('depositing tokens', () => {
-        describe('success', () => {
-            it('tracks the token deposit', async() => {
 
+        let result;
+        let amount = tokens(10);
+
+        describe('success', () => {
+            beforeEach(async() => {
+                await token.approve(exchange.address, amount, { from: user1 })
+            })
+            it('tracks the token deposit', async() => {
+                console.log("token address: ", token.address);
+                //checks the balance of my exchange
+                userBalanceInitial = await exchange.tokens(token.address, user1)
+                tokenAddress = token.address
+                result = await exchange.depositToken(tokenAddress, tokens(10), { from: user1 })
+                const balance = await token.balanceOf(exchange.address)
+                    // console.log("hello: " + balance);
+                balance.toString().should.equal(amount.toString());
+                userBalanceFinal = await exchange.tokens(token.address, user1);
+                temp1 = parseFloat(userBalanceInitial + amount)
+                temp2 = userBalanceFinal
+                temp1.toString().should.equal(temp2.toString())
+            })
+
+            it('emits a Deposit event', async() => {
+                const log = result.logs[0]
+                log.event.should.equal('Deposit')
+                console.log(log.event);
+                const event = log.args;
+                event._token.should.equal(tokenAddress, 'checks address of tokens i.e. correcttoken is sent or not')
+                event.user.should.equal(user1, 'checks address of users')
+                console.log("error here");
+                event.amount.toString().should.equal(amount.toString(), 'tokens sent is same')
+                    // userBalanceFinal = await exchange.tokens(token.address, user1);
+                event.curBalance.toString().should.equal(amount.toString(), 'current balance is right')
             })
         })
         describe('failure', () => {
-
+            it('when no tokens are approves', async() => {
+                await exchange.depositToken(tokenAddress, tokens(10), { from: user1 }).should.be.rejectedWith(EVM_REVERT)
+            })
         })
     })
 })
