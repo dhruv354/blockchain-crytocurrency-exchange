@@ -5,7 +5,7 @@ const Exchange = artifacts.require('Exchange')
 const Token = artifacts.require('Token')
 
 
-/*******helper functions */
+/*******helper functions ***********/
 
 
 
@@ -34,7 +34,10 @@ function toFixed(x) {
     return x;
 }
 
+ether_address = '0x0000000000000000000000000000000000000000'
 
+
+/******************helper function ends*******************/
 
 require('chai')
     .use(require('chai-as-promised'))
@@ -56,7 +59,7 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
         await token.transfer(user1, tokens(100), { from: deployer });
     })
 
-    describe('deployment', () => {
+    describe('deployment', async() => {
 
         it('tracks the fee account', async() => {
             //read token name here
@@ -69,6 +72,39 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
             result.toString().should.equal(feePercent.toString());
         })
 
+    })
+
+    describe('depositing ETHER', () => {
+        let result
+        let amount = tokens(1)
+
+        beforeEach(async() => {
+            result = await exchange.depositEther({ from: user1, value: amount })
+        })
+        describe('success', () => {
+            it('tracks ether deposit', async() => {
+                balance = await exchange.tokens(ether_address, user1);
+                balance.toString().should.equal(amount.toString())
+            })
+
+            it('emits a Deposit event', async() => {
+                const log = result.logs[0]
+                log.event.should.equal('Deposit')
+                console.log(log.event);
+                const event = log.args;
+                event._token.should.equal(ether_address, 'checks address of tokens i.e. correcttoken is sent or not')
+                event.user.should.equal(user1, 'checks address of users')
+                console.log("error here");
+                event.amount.toString().should.equal(amount.toString(), 'tokens sent is same')
+                    // userBalanceFinal = await exchange.tokens(token.address, user1);
+                event.curBalance.toString().should.equal(amount.toString(), 'current balance is right')
+            })
+        })
+
+
+        describe('failure', () => {
+
+        })
     })
 
     describe('depositing tokens', () => {
@@ -109,6 +145,12 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
             })
         })
         describe('failure', () => {
+
+            it('it rejects ETHER deposits', async() => {
+                await exchange.depositToken(ether_address, amount, { from: user1 }).should.be.rejectedWith(EVM_REVERT)
+            })
+
+
             it('when no tokens are approves', async() => {
                 await exchange.depositToken(tokenAddress, tokens(10), { from: user1 }).should.be.rejectedWith(EVM_REVERT)
             })
