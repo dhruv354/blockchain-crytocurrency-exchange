@@ -19,6 +19,7 @@ contract Exchange{
     mapping(address => mapping(address => uint256)) public tokens;
     //mapping to map id with a particular order
     mapping(uint256 => _Order) public orders;
+    mapping(uint256 => bool) public cancelOrders;
 
     //Exchange events
     event Deposit(address _token, address user, uint256 amount, uint256 curBalance);
@@ -31,6 +32,16 @@ contract Exchange{
 
     
     event Order(
+        uint id,
+        address user,
+        address tokenGet,
+        uint amountGet,
+        address tokenGive,
+        uint amountGive,
+        uint timestamp
+    );
+
+    event Cancel(
         uint id,
         address user,
         address tokenGet,
@@ -92,4 +103,15 @@ contract Exchange{
         emit Order(_id, msg.sender, _tokenGet, _amountGet, _tokenGive, _amountGive, now);
 
     }
+
+    function cancelOrder(uint256 _id) public{
+        _Order storage my_order = orders[_id];
+        require(msg.sender == address(my_order.user)); // caller of this function should be same user 
+        require(my_order.id == _id); //must be a valid order
+        cancelOrders[_id] = true;
+       
+        emit Cancel(my_order.id, my_order.user, my_order.tokenGet, 
+                    my_order.amountGet, my_order.tokenGive, my_order.amountGive, now);
+    }
+
 }

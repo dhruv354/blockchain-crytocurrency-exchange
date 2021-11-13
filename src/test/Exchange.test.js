@@ -43,7 +43,7 @@ require('chai')
     .use(require('chai-as-promised'))
     .should()
 
-contract('Exchange', ([deployer, feeAccount, user1]) => {
+contract('Exchange', ([deployer, feeAccount, user1, user2]) => {
     let exchange
     let token
     const feePercent = 10
@@ -257,12 +257,14 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
 
     describe('make orders', () => {
         let result;
+        let orderCount;
         beforeEach(async() => {
             result = await exchange.makeOrder(token.address, tokens(1), ether_address, tokens(1), { from: user1 });
+            orderCount = await exchange.orderCount()
         })
 
         it('tracks newly created order', async() => {
-            const orderCount = await exchange.orderCount()
+
             orderCount.toString().should.equal('1')
             const order = await exchange.orders(orderCount)
             order.id.toString().should.equal(orderCount.toString())
@@ -272,6 +274,64 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
             order.tokenGive.should.equal(ether_address)
             order.amountGive.toString().should.equal(tokens(1).toString())
             order.timestamp.toString().length.should.be.at.least(1, 'time is correct')
+        })
+
+        it('emits Order event', async() => {
+            const log = result.logs[0];
+            log.event.should.equal('Order')
+            const event = log.args
+            const order = await exchange.orders(orderCount)
+            event.id.toString().should.equal(orderCount.toString())
+            event.user.should.equal(user1, 'user is same')
+            event.tokenGet.should.equal(token.address)
+            event.amountGet.toString().should.equal(tokens(1).toString())
+            event.tokenGive.should.equal(ether_address)
+            event.amountGive.toString().should.equal(tokens(1).toString())
+            event.timestamp.toString().length.should.be.at.least(1, 'time is correct')
+
+        })
+    })
+
+
+    describe('order actions', async() => {
+        beforeEach(async() => {
+            await exchange.depositEther({ from: user1, value: tokens(1) });
+            await exchange.makeOrder(token.address, tokens(1), ether_address, tokens(1), { from: user1 });
+        })
+        describe('cancelling orders', () => {
+            let result;
+            describe('success', async() => {
+                beforeEach(async() => {
+                    result = await exchange.cancelOrder('1', { from: user1 });
+                })
+
+                it('update cancelled orders', async() => {
+                    const orderCancelled = await exchange.cancelOrders(1)
+                    orderCancelled.should.equal(true)
+                })
+                it('triggers Cancel event', async() => {
+                    const log = result.logs[0];
+                    log.event.should.equal('Cancel')
+                    const event = log.args
+                    const order = await exchange.orders(1)
+                    event.id.toString().should.equal('1')
+                    event.user.should.equal(user1, 'user is same')
+                    event.tokenGet.should.equal(token.address)
+                    event.amountGet.toString().should.equal(tokens(1).toString())
+                    event.tokenGive.should.equal(ether_address)
+                    event.amountGive.toString().should.equal(tokens(1).toString())
+                    event.timestamp.toString().length.should.be.at.least(1, 'time is correct')
+                })
+            })
+
+            describe('failure', () => {
+                it('rejects inValid order', async() => {
+                    await exchange.cancelOrder(9999, { from: user1 }).should.be.rejectedWith(EVM_REVERT);
+                })
+                it('make order user and cancel order user not same', async() => {
+                    await exchange.cancelOrder(1, { from: user2 }).should.be.rejectedWith(EVM_REVERT)
+                })
+            })
         })
     })
 })
