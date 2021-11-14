@@ -20,6 +20,7 @@ contract Exchange{
     //mapping to map id with a particular order
     mapping(uint256 => _Order) public orders;
     mapping(uint256 => bool) public cancelOrders;
+    mapping(uint256 => bool) public orderFilled; 
 
     //Exchange events
     event Deposit(address _token, address user, uint256 amount, uint256 curBalance);
@@ -48,6 +49,17 @@ contract Exchange{
         uint amountGet,
         address tokenGive,
         uint amountGive,
+        uint timestamp
+    );
+
+      event Trade(
+        uint id,
+        address user,
+        address tokenGet,
+        uint amountGet,
+        address tokenGive,
+        uint amountGive,
+        address userFill,
         uint timestamp
     );
 
@@ -112,6 +124,43 @@ contract Exchange{
        
         emit Cancel(my_order.id, my_order.user, my_order.tokenGet, 
                     my_order.amountGet, my_order.tokenGive, my_order.amountGive, now);
+    }
+
+
+    function fillOrder(uint256 _id) public{
+        require(_id > 0 && _id <= orderCount);
+        require(!orderFilled[_id]);
+        require(!cancelOrders[_id]);
+        _Order storage _order = orders[_id];
+        //check if id is a valid id
+        require(_order.id == _id);
+        // require()
+        _trade(_id, _order.user, _order.tokenGet, _order.amountGet, _order.tokenGive, _order.amountGive);
+        //mark order as filled
+        orderFilled[_id] = true;
+
+    }
+
+    function _trade( uint _id, address _user, address _tokenGet, uint _amountGet, address _tokenGive, uint _amountGive) internal{
+
+        //fees charged during the transaction
+        //fees will be paid by the caller of this function
+
+        uint256 _feeAmount = (_amountGive * feePercent)/100;
+        
+        //ensure msg.sender has enough balance
+        require(tokens[_tokenGet][msg.sender] >= (_amountGet + _feeAmount));
+        //execute the trade
+        tokens[_tokenGet][msg.sender] =  tokens[_tokenGet][msg.sender] - _amountGet - _feeAmount ;
+        tokens[_tokenGet][_user] += _amountGet;
+        tokens[_tokenGive][msg.sender] += _amountGive;
+        tokens[_tokenGive][_user] -= _amountGive;
+
+        tokens[_tokenGet][feeAccount] += _feeAmount;
+
+
+        //emit trade event
+        emit Trade(_id, _user, _tokenGet, _amountGet, _tokenGive, _amountGive, msg.sender, now);
     }
 
 }
