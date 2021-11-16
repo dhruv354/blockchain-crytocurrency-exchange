@@ -20,7 +20,7 @@
         "redux-logger": "^3.0.6",
         "reselect": "^4.0.0",
         "solidity-coverage": "^0.7.17",
-        "truffle": "^5.4.16",
+        "truffle": "^5.4.19",
         "web-vitals": "^2.1.2",
         "web3": "^1.5.3"
     },
