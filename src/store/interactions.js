@@ -3,7 +3,10 @@ import {
   web3Loaded,
   web3AccountLoaded,
   tokenLoaded,
-  exchangeLoaded
+  exchangeLoaded,
+  CancelOrdersLoaded,
+  TradedOrdersLoaded,
+  AllOrdersLoaded
 } from './actions' 
 import Token from '../abis/Token.json'
 import Exchange from '../abis/Exchange.json'
@@ -56,7 +59,19 @@ export const loadExchange = async (web3, networkId, dispatch) => {
 
 export const LoadAllOrders = async(exchange, dispatch) => {
   // all cancelled events in the entire blockchain
-  console.log("exchange: ", exchange);
+  // console.log("exchange: ", exchange);
   const cancelledEvents = await exchange.getPastEvents('Cancel', {fromBlock: 0, toBlock: 'latest'})
-  console.log(cancelledEvents);
+  const cancelledOrders = cancelledEvents.map(event => event.returnValues)
+  // console.log(cancelledOrders);
+  dispatch(CancelOrdersLoaded(cancelledEvents))
+
+  //traded aka succefful orderes
+  const TradedEvents = await exchange.getPastEvents('Trade', {fromBlock: 0, toBlock: 'latest'})
+  const TradedOrders = TradedEvents.map(event => event.returnValues)
+  dispatch(TradedOrdersLoaded(TradedOrders))
+
+  const OrderEvents = await exchange.getPastEvents('Order', {fromBlock: 0, toBlock: 'latest'})
+  const allOrders = OrderEvents.map(event => event.returnValues)
+  dispatch(AllOrdersLoaded(allOrders))
+
 }

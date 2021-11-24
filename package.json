@@ -3,7 +3,6 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@openzeppelin/contracts": "^4.3.2",
         "@testing-library/jest-dom": "github:testing-library/jest-dom",
         "apexcharts": "^3.29.0",
         "babel": "^6.23.0",
@@ -13,6 +12,7 @@
         "chai": "^4.3.4",
         "chai-as-promised": "^7.1.1",
         "lodash": "^4.17.21",
+        "moment": "^2.29.1",
         "openzeppelin-solidity": "^4.3.2",
         "react": "^17.0.2",
         "react-bootstrap": "^2.0.2",
@@ -23,7 +23,7 @@
         "redux-logger": "^3.0.6",
         "reselect": "^4.0.0",
         "solidity-coverage": "^0.6.7",
-        "truffle": "^5.1.65",
+        "truffle": "^5.4.22",
         "web-vitals": "^2.1.2",
         "web3": "^1.5.3"
     },

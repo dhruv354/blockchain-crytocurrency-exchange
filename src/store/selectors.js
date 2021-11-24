@@ -1,7 +1,8 @@
 import { get } from 'lodash'
 import { createSelector } from 'reselect'
 // import moment from 'moment'
-// import { ETHER_ADDRESS, GREEN, RED, tokens, ether } from '../helpers'
+import { ether_address, ether, tokens, GREEN, RED } from '../helpers'
+import moment from 'moment'
 
 const account = state => get(state, 'web3.account')
 export const accountSelector = createSelector(account, a => a)
@@ -21,80 +22,90 @@ export const contractsLoadedSelector = createSelector(
   (tl, el) => (tl && el)
 )
 
-// const filledOrdersLoaded = state => get(state, 'exchange.filledOrders.loaded', false)
-// export const filledOrdersLoadedSelector = createSelector(filledOrdersLoaded, loaded => loaded)
+const tradedOrdersLoaded = state => get(state, 'exchange.tradedOrders.loaded', false)
+export const tradedOrderLoadedSelector = createSelector(tradedOrdersLoaded, loaded => loaded)
 
-// const filledOrders = state => get(state, 'exchange.filledOrders.data', [])
-// export const filledOrdersSelector = createSelector(
-//   filledOrders,
-//   (orders) => {
-//     // Sort orders by date ascending for price comparison
-//     orders = orders.sort((a,b) => a.timestamp - b.timestamp)
-//     // Decorate the orders
-//     orders = decorateFilledOrders(orders)
-//     // Sort orders by date descending for display
-//     orders = orders.sort((a,b) => b.timestamp - a.timestamp)
-//     return orders
-//   }
-// )
 
-// const decorateFilledOrders = (orders) => {
-//   // Track previous order to compare history
-//   let previousOrder = orders[0]
-//   return(
-//     orders.map((order) => {
-//       order = decorateOrder(order)
-//       order = decorateFilledOrder(order, previousOrder)
-//       previousOrder = order // Update the previous order once it's decorated
-//       return order
-//     })
-//   )
-// }
+const tradedOrders = state => get(state, 'exchange.tradedOrders.data', [])
+export const tradedOrderSelector = createSelector(tradedOrders, orders => {
+  //sort in ascending order to compare current token price with previous
+  orders = orders.sort((a, b) => b.timestamp - a.timestamp)
+  orders = decorateTradedOrders(orders)
+  //sort in descending order to view latest order first
+  orders = orders.sort((a, b) => b.timestamp - a.timestamp)
+  console.log("inside tadedorder-selector", orders)
+  return orders
+})
 
-// const decorateOrder = (order) => {
-//   let etherAmount
-//   let tokenAmount
+const decorateTradedOrders = (orders) => {
+  let previousOrder
+  return (
+    orders.map(order => {
+     order =  decorateOrder(order)
+     order = tokenPriceChecker(order, previousOrder)
+     previousOrder = order
+     return order
+    //  return order
+    })
+  )
+}
 
-//   if(order.tokenGive == ETHER_ADDRESS) {
-//     etherAmount = order.amountGive
-//     tokenAmount = order.amountGet
-//   } else {
-//     etherAmount = order.amountGet
-//     tokenAmount = order.amountGive
-//   }
+const decorateOrder = (order) => {
+  // return order
+  //if given amount by  the user is ether in exchange of
+  //Dapp token by the user
+  let etherAmount
+  let tokenAmount
+  // console.log("wdkjfqbeirufbh1isdbefbieurfhikeurhfikeurhfkieufhikeuvhieuvieuviu");
+  if(order.tokenGive == ether_address){
+    // console.log("logging a particular order", order);
+    etherAmount = order.amountGive
+    tokenAmount = order.amountGet
+  }
+  //he gets ether in exchnage of Dapp token
+  else{
+    // console.log("logging a particular order2", order);
+    etherAmount = order.amountGet
+    tokenAmount = order.amountGive
+  }
+  const precision = 100000
+  let tokenPrice = etherAmount / tokenAmount
+  tokenPrice = Math.round(tokenPrice * precision) / precision
+  let newTimeStamp = moment.unix(order.timestamp).format('h:mm:ss a M/D')
 
-//   // Calculate token price to 5 decimal places
-//   const precision = 100000
-//   let tokenPrice = (etherAmount / tokenAmount)
-//   tokenPrice = Math.round(tokenPrice * precision) / precision
+  //return the update order object
+  
+  return {
+        ...order,
+        etherAmount: ether(etherAmount), 
+        tokenAmount: tokens(tokenAmount), 
+        tokenPrice, 
+        formatedTimeStamp: newTimeStamp
+      }
+}
 
-//   return({
-//     ...order,
-//     etherAmount: ether(etherAmount),
-//     tokenAmount: tokens(tokenAmount),
-//     tokenPrice,
-//     formattedTimestamp: moment.unix(order.timestamp).format('h:mm:ss a M/D')
-//   })
-// }
+const tokenPriceChecker = (order, previousOrder) => {
+  return({
+    ...order,
+    tokenPriceClass: tokenPriceCheckerHelper(order.tokenPrice, order.id, previousOrder)
 
-// const decorateFilledOrder = (order, previousOrder) => {
-//   return({
-//     ...order,
-//     tokenPriceClass: tokenPriceClass(order.tokenPrice, order.id, previousOrder)
-//   })
-// }
+  })
+}
 
-// const tokenPriceClass = (tokenPrice, orderId, previousOrder) => {
-//   // Show green price if only one order exists
-//   if(previousOrder.id === orderId) {
-//     return GREEN
-//   }
+const tokenPriceCheckerHelper = (curTokenPrice, id, previousOrder) => {
 
-//   // Show green price if order price higher than previous order
-//   // Show red price if order price lower than previous order
-//   if(previousOrder.tokenPrice <= tokenPrice) {
-//     return GREEN // success
-//   } else {
-//     return RED // danger
-//   }
-// }
+  //if there is no price previous order
+  //and current irder is the first one
+  if(!previousOrder){
+    return GREEN
+  }
+
+  //if current token Price is greater than previous
+  if(curTokenPrice >= previousOrder.tokenPrice){
+    return GREEN
+  }
+  //if current token price is lesser than previous
+  else{
+    return RED
+  }
+}
