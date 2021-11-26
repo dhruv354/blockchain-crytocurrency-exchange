@@ -1,4 +1,4 @@
-import { get } from 'lodash'
+import { get, groupBy, reject } from 'lodash'
 import { createSelector } from 'reselect'
 // import moment from 'moment'
 import { ether_address, ether, tokens, GREEN, RED } from '../helpers'
@@ -21,6 +21,21 @@ export const contractsLoadedSelector = createSelector(
   exchangeLoaded,
   (tl, el) => (tl && el)
 )
+
+
+//all the orders that are cancelled
+const cancelledOrdersLoaded = state => get(state, 'exchange.cancelledOrders.loaded', false)
+export const cancelledOrdersLoadedSelector = createSelector(cancelledOrdersLoaded, loaded => loaded)
+
+const cancelledOrders = state => get(state, 'exchange.cancelledOrders.data', [])
+export const cancelledOrdersSelector = createSelector(cancelledOrders, orders => orders)
+
+//all the orders that are placed whether cancelled or traded
+const allOrdersLoaded = state => get(state, 'exchange.allOrders.loaded', false)
+// export const allOrdersLoadedSelector = createSelector(allOrdersLoaded, loaded => loaded)
+
+const allOrders = state => get(state, 'exchange.allOrders.data', [])
+// export const allOrdersSelector = createSelector(allOrders, orders => orders)
 
 const tradedOrdersLoaded = state => get(state, 'exchange.tradedOrders.loaded', false)
 export const tradedOrderLoadedSelector = createSelector(tradedOrdersLoaded, loaded => loaded)
@@ -108,4 +123,69 @@ const tokenPriceCheckerHelper = (curTokenPrice, id, previousOrder) => {
   else{
     return RED
   }
+}
+
+
+const openOrders = state => {
+  const all = allOrders(state)
+  const traded = tradedOrders(state)
+  const cancelled = cancelledOrders(state)
+
+  const openOrders = reject(all, (order) => {
+    const orderFilled = traded.some((o) => o.id === order.id)
+    const orderCancelled = cancelled.some((o) => o.id === order.id)
+    return(orderFilled || orderCancelled)
+  })
+
+  return openOrders
+}
+
+
+const orderBookLoaded = state => cancelledOrdersLoaded(state) && tradedOrdersLoaded(state) && allOrdersLoaded(state)
+export const orderBookLoadedSelector = createSelector(orderBookLoaded, loaded => loaded)
+
+// Create the order book
+export const orderBookSelector = createSelector(
+  openOrders,
+  (orders) => {
+    // Decorate orders
+    orders = decorateOrderBookOrders(orders)
+    // Group orders by "orderType"
+    orders = groupBy(orders, 'orderType')
+    // Fetch buy orders
+    const buyOrders = get(orders, 'buy', [])
+    // Sort buy orders by token price
+    orders = {
+      ...orders,
+      buyOrders: buyOrders.sort((a,b) => b.tokenPrice - a.tokenPrice)
+    }
+    // Fetch sell orders
+    const sellOrders = get(orders, 'sell', [])
+    // Sort sell orders by token price
+    orders = {
+      ...orders,
+      sellOrders: sellOrders.sort((a,b) => b.tokenPrice - a.tokenPrice)
+    }
+    return orders
+  }
+)
+
+const decorateOrderBookOrders = (orders) => {
+  return(
+    orders.map((order) => {
+      order = decorateOrder(order)
+      order = decorateOrderBookOrder(order)
+      return(order)
+    })
+  )
+}
+
+const decorateOrderBookOrder = (order) => {
+  const orderType = order.tokenGive === ether_address ? 'buy' : 'sell'
+  return({
+    ...order,
+    orderType,
+    orderTypeClass: (orderType === 'buy' ? GREEN : RED),
+    orerFillClass: orderType === 'buy' ? 'sell' : 'buy'
+  })
 }
