@@ -1,14 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.css'
 import App from './components/App';
 import Web3 from 'web3';
 import configureStore from './store/configureStore';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-// import 'bootstrap/dist/css/bootstrap.css'
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+
+
 import reportWebVitals from './reportWebVitals';
 
 const store = configureStore()
