@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 // import { accountSelector } from '../store/selectors'
-import { LoadAllOrders } from '../store/interactions';
+import { LoadAllOrders, subscribeToEvents } from '../store/interactions';
 import exchange from '../abis/Exchange'
 import { exchangeSelector } from '../store/selectors';
 import Trades from './Trades';
@@ -19,6 +19,7 @@ class Content extends Component {
   async loadBlockchainContractData(dispatch){
 
     await LoadAllOrders(this.props.exchange, dispatch)
+    await subscribeToEvents(this.props.exchange, dispatch)
   }
 
   render() {

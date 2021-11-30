@@ -7,8 +7,12 @@ import {
   myTradedOrdersSelector,
   myOpenOrdersLoadedSelector,
   myOpenOrdersSelector,
+  accountSelector,
+  exchangeSelector,
+  orderCancellingSelector
 } from '../store/selectors'
 
+import {cancelOrder} from  '../store/interactions'
 const showMyFilledOrders = (myFilledOrders) => {
   return(
     <tbody>
@@ -25,7 +29,9 @@ const showMyFilledOrders = (myFilledOrders) => {
   )
 }
 
-const showMyOpenOrders = (myOpenOrders) => {
+const showMyOpenOrders = (props) => {
+  const { myOpenOrders, dispatch, exchange, account } = props
+
   return(
     <tbody>
       { myOpenOrders.map((order) => {
@@ -33,14 +39,18 @@ const showMyOpenOrders = (myOpenOrders) => {
           <tr key={order.id}>
             <td className={`text-${order.orderTypeClass}`}>{order.tokenAmount}</td>
             <td className={`text-${order.orderTypeClass}`}>{order.tokenPrice}</td>
-            <td className="text-muted">x</td>
+            <td
+              className="text-muted cancel-order"
+              onClick={(e) => {
+                cancelOrder(dispatch, exchange, account, order)
+              }}
+            >X</td>
           </tr>
         )
       }) }
     </tbody>
   )
 }
-
 class MyTransactions extends Component {
   render() {
     return (
@@ -71,7 +81,7 @@ class MyTransactions extends Component {
                     <th>Cancel</th>
                   </tr>
                 </thead>
-                { this.props.showMyOpenOrders ? showMyOpenOrders(this.props.myOpenOrders) : <Spinner type="table" />}
+                { this.props.showMyOpenOrders ? showMyOpenOrders(this.props) : <Spinner type="table" />}
               </table>
             </Tab>
           </Tabs>
@@ -81,21 +91,40 @@ class MyTransactions extends Component {
   }
 }
 
-function mapStateToProps(state) {
-    console.log({
-        myFilledOrders: myTradedOrdersSelector(state),
-        showMyFilledOrders: tradedOrderLoadedSelector(state),
-        myOpenOrders: myOpenOrdersSelector(state),
-        showMyOpenOrders: myOpenOrdersLoadedSelector(state)
+// function mapStateToProps(state) {
+//     console.log({
+//         myFilledOrders: myTradedOrdersSelector(state),
+//         showMyFilledOrders: tradedOrderLoadedSelector(state),
+//         myOpenOrders: myOpenOrdersSelector(state),
+//         showMyOpenOrders: myOpenOrdersLoadedSelector(state)
       
-    });
+//     });
+
+//   return {
+//     myFilledOrders: myTradedOrdersSelector(state),
+//     showMyFilledOrders: tradedOrderLoadedSelector(state),
+//     myOpenOrders: myOpenOrdersSelector(state),
+//     showMyOpenOrders: myOpenOrdersLoadedSelector(state),
+//     account: accountSelector(state),
+//     exchange: exchangeSelector(state)
+//   }
+// }
+
+
+function mapStateToProps(state) {
+  const myOpenOrdersLoaded = myOpenOrdersLoadedSelector(state)
+  const orderCancelling = orderCancellingSelector(state)
 
   return {
     myFilledOrders: myTradedOrdersSelector(state),
     showMyFilledOrders: tradedOrderLoadedSelector(state),
     myOpenOrders: myOpenOrdersSelector(state),
-    showMyOpenOrders: myOpenOrdersLoadedSelector(state)
+    showMyOpenOrders: myOpenOrdersLoaded && !orderCancelling,
+    exchange: exchangeSelector(state),
+    account: accountSelector(state)
   }
 }
 
 export default connect(mapStateToProps)(MyTransactions);
+
+// export default connect(mapStateToProps)(MyTransactions);

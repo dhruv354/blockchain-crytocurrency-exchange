@@ -56,3 +56,19 @@ export function AllOrdersLoaded(orders) {
       orders
     }
   }
+
+
+// action to dispatch when a order is cancelling
+
+export function orderCancelling() {
+  return {
+    type: 'ORDER_CANCELLING',
+  }
+}
+
+export function orderCancelled(order) {
+  return {
+    type: 'ORDER_CANCELLED',
+    order
+  }
+}
