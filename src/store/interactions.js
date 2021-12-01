@@ -8,10 +8,13 @@ import {
   TradedOrdersLoaded,
   AllOrdersLoaded,
   orderCancelling, 
-  orderCancelled
+  orderCancelled,
+  orderFilling,
+  orderFilled
 } from './actions' 
 import Token from '../abis/Token.json'
 import Exchange from '../abis/Exchange.json'
+import { orderFillingSelector } from './selectors'
 
 export const loadWeb3 = async (dispatch) => {
   if(typeof window.ethereum!=='undefined'){
@@ -96,10 +99,34 @@ export const cancelOrder = (dispatch, exchange, account, order) => {
 
 export const subscribeToEvents = async (exchange, dispatch) => {
   exchange.events.Cancel({}, (error, event) => {
+    if(error){
+      window.alert(error)
+      console.log(error);
+      return;
+    }
     dispatch(orderCancelled(event.returnValues))
+  })
+  exchange.events.Trade({}, (error, event) => {
+    if(error){
+      window.alert(error)
+      console.log(error);
+      return;
+    }
+    dispatch(orderFilled(event.returnValues))
   })
 }
 
 
+
+export const fillOrder = (dispatch, exchange, account, order) => {
+  exchange.methods.fillOrder(order.id).send({from: account})
+  .on('transactionHash', hash => {
+    dispatch(orderFilling())
+  })
+  .on('error', (error) => {
+    console.log(error)
+    window.alert("error in filling a order")
+  })
+}
 
 

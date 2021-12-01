@@ -45,6 +45,39 @@ function exchange(state = {}, action) {
           ]
         }
       }
+    case 'ORDER_FILLING':
+      return{...state, orderFilling: true}
+    case 'ORDER_FILLED':
+      return {
+        ...state,
+        orderFilling: false,
+        tradedOrders: {
+          ...state.tradedOrders,
+          data: [
+            ...state.tradedOrders.data,
+            action.order
+          ]
+        }
+      }
+      case 'ORDER_FILLED':
+        // Prevent duplicate orders
+        let index, data
+        index = state.tradedOrders.data.findIndex(order => order.id === action.order.id);
+  
+        if(index === -1) {
+          data = [...state.tradedOrders.data, action.order]
+        } else {
+          data = state.tradedOrders.data
+        }
+  
+        return {
+          ...state,
+          orderFilling: false,
+          tradedOrders: {
+            ...state.tradedOrders,
+            data
+          }
+        }
     default:
       return state
   }
