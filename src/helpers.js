@@ -37,3 +37,13 @@ export const  ether_address = '0x0000000000000000000000000000000000000000'
 
 export const GREEN = 'success'
 export const RED = 'danger'
+
+// TODO: Move me to helpers file
+export const formatBalance = (balance) => {
+    const precision = 100 // 2 decimal places
+  
+    balance = ether(balance)
+    balance = Math.round(balance * precision) / precision // Use 2 decimal places
+  
+    return balance
+  }

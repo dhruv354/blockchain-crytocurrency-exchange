@@ -163,4 +163,8 @@ contract Exchange{
         emit Trade(_id, _user, _tokenGet, _amountGet, _tokenGive, _amountGive, msg.sender, now);
     }
 
+    function balanceOf(address _token, address _user) public view returns (uint256) {
+        return tokens[_token][_user];
+    }
+
 }
