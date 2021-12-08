@@ -34,7 +34,8 @@ module.exports = async function(callback) {
         const receiver = accounts[1];
         console.log(sender, receiver);
         const amount = web3.utils.toWei('10000', 'ether')
-
+        console.log(amount);
+        console.log(web3);
         await token.transfer(receiver, amount, { from: sender })
         console.log(`transfers ${amount} from ${sender} to ${receiver}`);
 

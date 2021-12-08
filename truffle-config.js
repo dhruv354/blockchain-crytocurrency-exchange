@@ -37,18 +37,19 @@ module.exports = {
             port: 7545,
             network_id: "*",
         },
-        kovan: {
+        rinkeby: {
+            networkCheckTimeout: 10000,
             provider: function (){
                 return new HDWalletProvider(
                 //private key
                 privateKeys.split(','),
-                `https://kovan.infura.io/v3/${INFURA_API_KEY}`
+                `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`
                 //url to an ethereum node
                 )
             },
-            gas: 5000000,
-            gasPrice: 2500000000,
-            network_id: 42,
+            gas: 5500000,
+            skipDryRun: true,
+            network_id: 4,
         }
     },
     contracts_build_directory: './src/abis',
