@@ -1,6 +1,11 @@
 require('babel-register')
 require('babel-polyfill')
 require('dotenv').config()
+// const privateKeys = process.env.PRIVATE_KEYS || ""
+const HDWalletProvider = require('truffle-hdwallet-provider-privkey');
+const PRIVATE_KEYS = "c3e5b94520033f3c87d4b3c661a7a420f38a9d09d101e1c619fcbcd4013d06c9,ca12e1f9bd55081c6e770739f86f3922e8e1ee6625edc2dbf4d8254815ad0298"
+const INFURA_API_KEY = "99b6cb1b5fa74a03af447eaef46a18b5"
+const privateKeys = PRIVATE_KEYS
 
 /**
  * Use this file to configure your truffle project. It's seeded with some
@@ -31,6 +36,19 @@ module.exports = {
             host: "127.0.0.1",
             port: 7545,
             network_id: "*",
+        },
+        kovan: {
+            provider: function (){
+                return new HDWalletProvider(
+                //private key
+                privateKeys.split(','),
+                `https://kovan.infura.io/v3/${INFURA_API_KEY}`
+                //url to an ethereum node
+                )
+            },
+            gas: 5000000,
+            gasPrice: 2500000000,
+            network_id: 42,
         }
     },
     contracts_build_directory: './src/abis',
