@@ -35,13 +35,13 @@ module.exports = async function(callback) {
         console.log(sender, receiver);
         const amount = web3.utils.toWei('10000', 'ether')
         console.log(amount);
-        console.log(web3);
+        // console.log(web3);
         await token.transfer(receiver, amount, { from: sender })
         console.log(`transfers ${amount} from ${sender} to ${receiver}`);
 
         const user1 = accounts[0]
         const user2 = accounts[1]
-
+        console.log(exchange.depositEther);
         await exchange.depositEther({ from: user1, value: tokens(1) });
 
         //user 2 approve tokens and deposit ERC20 token
