@@ -1,4 +1,4 @@
-
+### Must  have a Metamask extension to run this app : https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn
 
 ### Smart contracts address on Goerli Test network
 - Token - [0xAcB7849A166638Ca6C3f27f7066B00327102D3f0](https://goerli.etherscan.io/address/0xAcB7849A166638Ca6C3f27f7066B00327102D3f0)
